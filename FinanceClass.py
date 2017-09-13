@@ -4,5 +4,15 @@
 2. aggregate that data while taking inputs from user to properly categorize 
 3. output data into time frames, charts etc
 4. let user set goals that can be checked on
+# vars needed
+1. db location 2. cc info inout 3. storage of cc output 
+4. storage of goals
+
 """
 
+
+
+class FinanceActivity:
+
+	def __init__(self, db_location):
+		self.db_location = db_location
