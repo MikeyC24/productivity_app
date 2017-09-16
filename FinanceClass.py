@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import sqlite3
 import datetime
+import matplotlib.pyplot as plt
 
 
 class FinanceActivity:
@@ -26,8 +27,8 @@ class FinanceActivity:
 	def user_menu(self):
 		print('''Welcome to the finance part of the app, here is where you will manage
 all inflows and outflows, see past actions and view info through various charts\n''')
-		print('''To get started, type 1 to add new item/expense, press 2 to add
-new budget or goals, press 3 to see past history and analyze, and lastly
+		print('''To get started, type 1 to add new item/expense, press 2 to see past history and analyze
+, press 3 to add and set goals, and lastly
 press 4 to compare current progress to goals. enter 999 to quit''')
 		menu_input = 0
 		while menu_input != 999:
@@ -36,13 +37,14 @@ press 4 to compare current progress to goals. enter 999 to quit''')
 			menu_input = int(input('please enter selection(999 to quit): '))
 			if menu_input == 1:
 				print('add items')
-				#cc_df = self.add_items_from_cc()
+				cc_df = self.add_items_from_cc()
 				non_cc_df = self.add_items_non_cc()
-				#self.combine_add_dfs(cc_df, non_cc_df)
+				self.combine_add_dfs(cc_df, non_cc_df)
 			elif menu_input ==  2:
-				print('add goals')
-			elif menu_input == 3:
 				print('review numbers')
+				self.graph_options()
+			elif menu_input == 3:
+				print('add/set goals')
 			elif menu_input == 4:
 				print('compare')
 			elif menu_input == 999:
@@ -167,13 +169,54 @@ other press enter: ''')
 			df = df1
 		df.sort_index(ascending=True, inplace=True)
 		print('below is the combined data')
-		print(df_new.head())
+		print(df.head())
 		add_to_db = input('type yes to add: ')
 		if add_to_db == 'yes':
 			print('added to database')
 			df.to_sql(self.finance_out_report_name, con, if_exists='append')
 		else:
 			print('changes have not been added')
+
+	"""
+	# wanted for graph options
+	ave and std for time frame of total and each cat
+	pie graph of cats
+	moving averages/trends
+	time period comparison 
+	see all diff categories 
+	each overal option should be able to substitute time frame, and category
+	"""
+
+	def graph_options(self):
+		con = sqlite3.connect(self.db_location + self.db_name)
+		df = pd.read_sql_query('SELECT * FROM %s' % (self.finance_out_report_name), con)
+		df.set_index(pd.DatetimeIndex(df['Trans Date']), inplace=True, drop=True)
+		df.drop('Trans Date', axis=1, inplace=True)
+		print(df.index)
+		print(df.head())
+		print('''Here you can explore your past expenses and data by type, 
+timeframes, trends and other useful metrics''')
+		user_input = None
+		while user_input != 'quit':
+			print('''enter basic to see a series of pre determined graphs, it includes od pie
+	graph by category, weekly avg and std, monthly avg and std, expenses over time''')
+			print('''Else, pick what type of graph or analysis you would like to do. Enter pie
+for pie grapgs, time for graphs looking at variable over time ''')
+			user_input = input('please enter: ')
+			if user_input == 'basic':
+				plt.figure(figsize=(16,8))
+				ax1 = plt.subplot(111, aspect='equal')
+				df.plot(kind='pie', y = 'Category', ax=ax1, labels=df['Category'],
+					fontsize=14)
+				ax2 = plt.subplot(111, aspect='equal')
+				df.plot(kind='line', y='Amount', title='Expenses over time')
+				plt.show()
+				# need more data before doing below
+				df_m_mean = df.resample('M').mean()
+				df_m_sum = df.resample('M').sum()
+				df_w_mean = df.resample('W').mean()
+				df_w_sum = df.resample('W').sum()
+				print(df_m_mean.head(), df_w_sum.head(), df_w_mean.head(), df_w_sum.head())
 
 
 
@@ -182,6 +225,7 @@ db_location = '/home/mike/Documents/coding_all/productivity_app/'
 db_name = 'finance_db'
 #cc_report_name = 'sample_cc_report.csv'
 cc_report_name = 'sample_cc_report2.csv'
-report_output = 'financial_data2'
+#report_output = 'financial_data3'
+report_output = 'year_test_table1'
 instance = FinanceActivity(db_location, db_name, cc_report_name, report_output)
 instance.user_menu()
