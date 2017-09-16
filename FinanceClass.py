@@ -12,6 +12,7 @@
 import pandas as pd
 import numpy as np
 import sqlite3
+import datetime
 
 
 class FinanceActivity:
@@ -35,8 +36,9 @@ press 4 to compare current progress to goals. enter 999 to quit''')
 			menu_input = int(input('please enter selection(999 to quit): '))
 			if menu_input == 1:
 				print('add items')
-				#self.add_items_from_cc()
-				self.add_items_non_cc()
+				#cc_df = self.add_items_from_cc()
+				non_cc_df = self.add_items_non_cc()
+				#self.combine_add_dfs(cc_df, non_cc_df)
 			elif menu_input ==  2:
 				print('add goals')
 			elif menu_input == 3:
@@ -53,10 +55,6 @@ press 4 to compare current progress to goals. enter 999 to quit''')
 			print('goodbye')
 
 	def add_items_from_cc(self):
-		try:
-			con = sqlite3.connect(self.db_location+ self.db_name)
-		except Exception as e:
-			print(' no current datatable exists,', e)
 		print(str(self.db_location+self.cc_report_name))
 		cc_df = pd.read_csv(self.db_location+self.cc_report_name)
 		#pd.DatetimeIndex(cc_df['Trans Date'], format='%m%d%Y', inplace=True)
@@ -67,8 +65,9 @@ press 4 to compare current progress to goals. enter 999 to quit''')
 		#cc_df.sort_values(by=index)
 		cc_df.sort_index(ascending=True, inplace=True)
 		print(cc_df.head(5))
-		cc_df['category'] = 'none selected yet'
-		cc_df['additional_info'] = 'None added'
+		cc_df['Category'] = 'none selected'
+		cc_df['Additional Info'] = 'None added'
+		cc_df['Type'] = 'Credit Card'
 		order = input('''Curenetly the data is shown by most recen transactions, would you
 like to reverse that or keep it, type reverse to switch: ''')
 		if order == 'reverse':
@@ -85,20 +84,13 @@ in a description, with a limit of 50 characters.''')
 			print('''For the charge what category will you like to enter. enter "list", 
 to see all cateogiries currently entered''')
 			user_input = input('please enter a category: ')
-			cc_df['category'].iloc[x] =  user_input
+			cc_df['Category'].iloc[x] =  user_input
 			user_input1 = input('please add in any additional data: ')
 			if user_input1 is not None:
-				cc_df['additional_info'].iloc[x] = user_input1
+				cc_df['Additional Info'].iloc[x] = user_input1
 		print('Here are the changes you made, would you like to add additions to table? ')
 		print(cc_df.head())
-		add_to_db = input('type yes to add: ')
-		if add_to_db == 'yes':
-			if order == 'reverse':
-				cc_df.sort_index(ascending=True, inplace=True)
-			print('added to database')
-			cc_df.to_sql(self.finance_out_report_name, con, if_exists='append')
-		else:
-			print('changes have not been added')
+		return cc_df
 
 	def add_items_non_cc(self):
 		print('Here we will add cash and cash related expenses')
@@ -106,27 +98,83 @@ to see all cateogiries currently entered''')
 		date_array = []
 		amount_array = []
 		descrip_array = []
+		type_array = []
+		cateogry_array = []
+		additional_info_array = []
+		df = None
 		user_select = input('''Type quit if there is nothing to add in cash form,
 other press enter: ''')
 		while user_select != 'quit':
 			date = input('please enter the date of expense in the format m/d/yyyy: ')
-			amount = input('please enter the amount: ')
-			descrip = 'None given'
-			descrip = input('please enter description of expense: ')
-			date_array.append(date)
-			amount_array.append(int(amount))
-			descrip_array.append(descrip)
+			try:
+				check = datetime.datetime.strptime(date, '%m/%d/%Y')
+				print(type(check))
+				if check is check.date:
+					print('not a date')
+					raise ValueError()
+				amount = float(input('please enter the amount: '))
+				check = isinstance(amount, float)
+				print(check)
+				if check is False:
+					print('cant be empty or not a number')
+					raise ValueError()
+				descrip = input('please enter description of expense: ')
+				if len(descrip) < 0:
+					print('cant be empty')
+					raise ValueError()
+				additional_info = input('please enter any additonal info: ')
+				if len(additional_info) == 0:
+					additional_info = 'None Given'
+				type_ = input('please enter the type, such as cash, venmo, paypal,etc: ')
+				if len(type_) < 0:
+					print('cant be empty')
+					raise ValueError()
+				category = input('please enter the category: ')
+				if len(category) < 0:
+					print('cant be empty')
+					raise ValueError()
+				date_array.append(date)
+				amount_array.append(amount)
+				descrip_array.append(descrip)
+				cateogry_array.append(category)
+				additional_info_array.append(additional_info)
+				type_array.append(type_)
+			except Exception as e:
+				print('hit error', e)
 			user_select = input('''press any key to add another item, type quit to go back
 , type add to add to database: ''')
 			if user_select == 'add':
-				df = pd.DataFrame({'Date': date_array, 'Amount':amount_array, 
-					'Description': descrip_array})
-				df.set_index(pd.DatetimeIndex(df['Date']), inplace=True, drop=True)
+				df = pd.DataFrame({'Trans Date': date_array, 'Amount':amount_array, 
+					'Description': descrip_array, 'Type': type_array, 
+					'Category': cateogry_array, 'Additional Info': additional_info_array})
+				df.set_index(pd.DatetimeIndex(df['Trans Date']), inplace=True, drop=True)
+				df.drop('Trans Date', axis=1, inplace=True)
 				df.sort_index(ascending=True, inplace=True)
 				print(df.head(10))
 				user_select = 'quit'
 		else:
 			print('now going back')
+		return df
+
+	def combine_add_dfs(self, df1, df2):
+		try:
+			con = sqlite3.connect(self.db_location+ self.db_name)
+		except Exception as e:
+			print(' no current datatable exists,', e)
+		if df2 is not None:
+			df = pd.concat([df1,df2])
+		else:
+			df = df1
+		df.sort_index(ascending=True, inplace=True)
+		print('below is the combined data')
+		print(df_new.head())
+		add_to_db = input('type yes to add: ')
+		if add_to_db == 'yes':
+			print('added to database')
+			df.to_sql(self.finance_out_report_name, con, if_exists='append')
+		else:
+			print('changes have not been added')
+
 
 
 
