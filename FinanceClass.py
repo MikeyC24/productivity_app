@@ -198,25 +198,53 @@ other press enter: ''')
 timeframes, trends and other useful metrics''')
 		user_input = None
 		while user_input != 'quit':
-			print('''enter basic to see a series of pre determined graphs, it includes od pie
-	graph by category, weekly avg and std, monthly avg and std, expenses over time''')
-			print('''Else, pick what type of graph or analysis you would like to do. Enter pie
+			print('''Enter basic to see a series of pre determined graphs, it includes od pie
+graph by category, weekly avg and std, monthly avg and std, expenses over time''')
+			print('''Else, enter "custom" to pick what type of graph or analysis you would like to do. Enter pie
 for pie grapgs, time for graphs looking at variable over time ''')
 			user_input = input('please enter: ')
 			if user_input == 'basic':
-				plt.figure(figsize=(16,8))
-				ax1 = plt.subplot(111, aspect='equal')
-				df.plot(kind='pie', y = 'Category', ax=ax1, labels=df['Category'],
-					fontsize=14)
+				try:
+					df_cat_group = df.groupby('Category').sum() 
+					plt.figure(figsize=(16,8))
+					ax1 = plt.subplot(111, aspect='equal')
+					df_cat_group.plot(kind='pie', y = 'Amount', ax=ax1, autopct='%1.1f%%',
+					fontsize=14, title='Expenses by category')
+					plt.show()
+					plt.figure(figsize=(16,8))
+					ax1 = plt.subplot(111, aspect='equal')
+					df_cat_group.plot(kind='bar', y = 'Amount', ax=ax1,
+					fontsize=14, title='Expenses by category')
+					plt.show()
+				except Exception as e:
+					print('error on first graph,', e)
+				plt.figure(figsize=(16,8))	
 				ax2 = plt.subplot(111, aspect='equal')
-				df.plot(kind='line', y='Amount', title='Expenses over time')
+				df.plot(kind='line', y='Amount', ax=ax2, title='Expenses over time')
 				plt.show()
 				# need more data before doing below
 				df_m_mean = df.resample('M').mean()
 				df_m_sum = df.resample('M').sum()
 				df_w_mean = df.resample('W').mean()
 				df_w_sum = df.resample('W').sum()
-				print(df_m_mean.head(), df_w_sum.head(), df_w_mean.head(), df_w_sum.head())
+				print(df_m_mean.head(), df_m_sum.head(), df_w_mean.head(), df_w_sum.head())
+				try:
+					fig = plt.figure()
+					ax1 = fig.add_subplot(2,2,1)
+					ax2 = fig.add_subplot(2,2,2)
+					ax3 = fig.add_subplot(2,2,3)
+					ax4 = fig.add_subplot(2,2,4)
+					df_m_sum.plot(kind='line', y='Amount', ax=ax1, title='monthly sum line') 
+					df_m_sum.plot(kind='bar', x=df_m_sum.index, y='Amount', ax=ax2, title='monthly sum bar')
+					df_w_sum.plot(kind='line', y='Amount', ax=ax3, title='weekly sum line')
+					df_w_sum.plot(kind='bar', y='Amount', ax=ax4, title='weekly sum bar')
+					plt.show()
+				except Exception as e:
+					print('error on multi plot graph,',e)
+			elif user_input == 'custom':
+				print('no custom options yet')
+			else:
+				print('That command was not recongized ')
 
 
 
