@@ -243,6 +243,8 @@ for pie grapgs, time for graphs looking at variable over time ''')
 					print('error on multi plot graph,',e)
 			elif user_input == 'custom':
 				print('no custom options yet')
+			elif user_input == 'quit':
+				pass
 			else:
 				print('That command was not recongized ')
 
