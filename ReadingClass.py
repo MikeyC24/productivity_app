@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 
 class ReadingClass:
 
+	database_name = 'user_reading_database'
+
 	def __init__(self, db_location):
 		self.db_location = db_location
 		
@@ -18,8 +20,8 @@ class ReadingClass:
 	def user_menu(self):
 		print('''Welcome to the reading class of this App. Here you can look at previosuly
 read items, check target list and goals, and see where you are currently at. Enter 1 to add
-a book or reading to target list. Enter 2 to move a new book to current read section. Enter
-3 to input a book into finished list. Enter 4 to add and update your goals. Enter 999
+a book or reading to target list. Enter 2 to move a new book to current read section and/or
+update goals. Enter 3 to input a book into finished list. Enter 4 to add and update your goals. Enter 999
 to quit.''')
 		menu_input = 0
 		while menu_input != 999:
@@ -47,7 +49,7 @@ to quit.''')
 
 	def add_readings(self):
 		print('''You will be prompted a series of questions to enter your information. The reading/book
-title, author and page numbers are mandatory, the genre, and reason for reading is optional.''')
+title, author and page numbers are mandatory, the genre, and reason for reading are optional.''')
 		title_array = []
 		author_array = []
 		number_pages_array = []
@@ -55,16 +57,28 @@ title, author and page numbers are mandatory, the genre, and reason for reading 
 		reason_read_array = []
 		df = None
 		user_input = None
-		user_input = input('enter back to go to main menu, otherwise click any button to continue: ').lower()
+		user_input = input('''Enter back to go to main menu, enter show to see current list,
+		 otherwise click any button to continue: ''').lower()
 		while user_input != 'back':
+			if user_input == 'show':
+				try:
+					print(user_input)
+					con = sqlite3.connect(self.db_location + self.database_name)
+					df_read = pd.read_sql('SELECT * FROM %s' % ('user_book_list'), con, index_col='index')
+					print(df_read.head(100))
+				except Exception as e:
+					print('not info exists or there was an error, ', e)
+					print('Please enter info or type back to go back')
+			print(user_input)
 			try:
-				title = input('Please enter the name of the book, be case sensitive: ')
-				if len(title) < 0:
+				print(user_input)	
+				title = input('Please enter the name of the book, be case sensitive: ').capitalize()
+				if len(title) < 1:
 					print('cant be empty')
 					raise ValueError()
 				author = input('''Please enter the author, be case sensitive. If there is
-more than one author, enter a comma after each auther: ''')
-				if len(author) < 0:
+	more than one author, enter a comma after each auther: ''').capitalize()
+				if len(author) < 1:
 					print('cant be empty')
 					raise ValueError()
 				number_pages = int(input('Please enter the number of pages: '))
@@ -74,7 +88,7 @@ more than one author, enter a comma after each auther: ''')
 					print('not a number')
 					raise ValueError()
 				genre = 'None entered'
-				genre = input('Please enter the genre: ')
+				genre = input('Please enter the genre: ').capitalize()
 				reason_read = 'None Entered'
 				reason_read = input('please enter the reason for reading: ')
 				title_array.append(title)
@@ -91,7 +105,38 @@ more than one author, enter a comma after each auther: ''')
 					'Number of Pages': number_pages_array, 'Genre': genre_array, 
 					'Reason for reading': reason_read_array})
 				print(df.head())
-				user_input = 'back'
+				user_input = input('''you have chosen add, enter back to go back, 
+		otherwise, if data is correct, press any key to add to database''')
+				if user_input != 'back':
+					try:
+						con = sqlite3.connect(self.db_location + self.database_name)
+					except Exception as e:
+						print(' no current datatable exists,', e)
+					try:
+						df.to_sql('user_book_list', con, if_exists='append')
+						user_input = 'back'
+					except Exception as e:
+						print('could not write to database,', e)
+
+	def current_goals_and_reads(self):
+		print('''Please enter show to see list of books on book list, current to see books
+you are currently reading, enter new to add a book to current read and enter finish
+to move a book out of current read to finished list''')
+		user_input = None
+		while user_input != 'back':
+			user_input = input('Please enter choice: ')
+			if user_input == 'show':
+				pass
+			elif user_input == 'current':
+				pass
+			elif user_input == 'new':
+				pass
+			elif user_input == 'finish':
+				pass
+			elif user_input == 'back':
+				pass
+			else:
+				print('The choice was not recongized, please try again')
 
 db_location = '/home/mike/Documents/coding_all/productivity_app/'
 reading = ReadingClass(db_location)

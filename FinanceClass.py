@@ -121,18 +121,18 @@ other press enter: ''')
 					print('cant be empty or not a number')
 					raise ValueError()
 				descrip = input('please enter description of expense: ')
-				if len(descrip) < 0:
+				if len(descrip) < 1:
 					print('cant be empty')
 					raise ValueError()
 				additional_info = input('please enter any additonal info: ')
-				if len(additional_info) == 0:
+				if len(additional_info) == 1:
 					additional_info = 'None Given'
 				type_ = input('please enter the type, such as cash, venmo, paypal,etc: ')
-				if len(type_) < 0:
+				if len(type_) < 1:
 					print('cant be empty')
 					raise ValueError()
 				category = input('please enter the category: ')
-				if len(category) < 0:
+				if len(category) < 1:
 					print('cant be empty')
 					raise ValueError()
 				date_array.append(date)
