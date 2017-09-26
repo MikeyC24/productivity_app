@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 class ReadingClass:
 
 	database_name = 'user_reading_database'
+	user_book_list = 'user_book_list'
+	current_read_table = 'current_read_table'
 
 	def __init__(self, db_location):
 		self.db_location = db_location
@@ -33,6 +35,7 @@ to quit.''')
 				self.add_readings()
 			elif menu_input ==  2:
 				print('current reads')
+				self.current_goals_and_reads()
 			elif menu_input == 3:
 				print('input book to finished list')
 			elif menu_input == 4:
@@ -64,7 +67,7 @@ title, author and page numbers are mandatory, the genre, and reason for reading 
 				try:
 					print(user_input)
 					con = sqlite3.connect(self.db_location + self.database_name)
-					df_read = pd.read_sql('SELECT * FROM %s' % ('user_book_list'), con, index_col='index')
+					df_read = pd.read_sql('SELECT * FROM %s' % (self.user_book_list), con, index_col='index')
 					print(df_read.head(100))
 				except Exception as e:
 					print('not info exists or there was an error, ', e)
@@ -113,7 +116,7 @@ title, author and page numbers are mandatory, the genre, and reason for reading 
 					except Exception as e:
 						print(' no current datatable exists,', e)
 					try:
-						df.to_sql('user_book_list', con, if_exists='append')
+						df.to_sql(self.user_book_list, con, if_exists='append')
 						user_input = 'back'
 					except Exception as e:
 						print('could not write to database,', e)
@@ -123,14 +126,34 @@ title, author and page numbers are mandatory, the genre, and reason for reading 
 you are currently reading, enter new to add a book to current read and enter finish
 to move a book out of current read to finished list''')
 		user_input = None
+		con = None
+		try:
+			con = sqlite3.connect(self.db_location + self.database_name)
+		except Exception as e:
+			print(' no current datatable exists,', e)
 		while user_input != 'back':
 			user_input = input('Please enter choice: ')
 			if user_input == 'show':
-				pass
+				df_read = pd.read_sql('SELECT * FROM %s' % (self.user_book_list), con, index_col='index')
+				print(df_read.head(100))
 			elif user_input == 'current':
-				pass
+				try:
+					df_read = pd.read_sql('SELECT * FROM %s' % (self.current_read_table), con, index_col='index')
+					print(df_read.head(100))
+				except Exception as e:
+					print('no list exists or hit error, ', e)
 			elif user_input == 'new':
-				pass
+				print('Do you want to move a book over from your read list or add new book to current read')
+				choice = input('enter move or new: ')
+				if choice == 'move':
+					df_read = pd.read_sql('SELECT * FROM %s' % (self.user_book_list), con, index_col='index')
+					print(df_read.head(100))
+					try:
+						book_number = int(input('Enter the index number of the book to add: '))
+						if book_number < df_read.shape[0]
+						raise ValueError()
+					except Exception as e:
+						print('not an option or not a number, ', e)
 			elif user_input == 'finish':
 				pass
 			elif user_input == 'back':
