@@ -123,7 +123,7 @@ title, author and page numbers are mandatory, the genre, and reason for reading 
 
 	def current_goals_and_reads(self):
 		intro = '''Please enter show to see list of books on book list, current to see books
-you are currently reading, enter new to add a book to current read and enter finish
+you are currently reading, enter add to add a book to current read and enter finish
 to move a book out of current read to finished list'''
 		print(intro)
 		user_input = None
@@ -145,7 +145,7 @@ to move a book out of current read to finished list'''
 				except Exception as e:
 					print('no list exists or hit error, ', e)
 				print(intro)
-			elif user_input == 'new':
+			elif user_input == 'add':
 				book_to_add_df = None
 				print('Do you want to move a book over from your read list or add new book to current read')
 				choice = input('enter move or new: ')
@@ -158,64 +158,102 @@ to move a book out of current read to finished list'''
 					print(df_read.index)
 					try:
 						book_number = int(input('Enter the index number of the book to add: '))
+						check_if_int(book_number)
+					except Exception as e:
+						print('not a number, ', e)
+					try:
 						if book_number > df_read.shape[0]:
 							raise ValueError()
 						book_to_add = df_read.iloc[book_number]
 					except Exception as e:
-						print('not an option or not a number, ', e)
+						print('not an option or out of range, or prior error, ', e)
 					#print(book_to_add)
 					#rerun books here if there are more to add
 					#book_to_add = book_to_add.transpose()
-					book_to_add_df =  pd.DataFrame(book_to_add).transpose()
-					book_to_add_df['date_added'] = datetime.datetime.now()
-					goal = input('''Would you like to set goals around this book, please 
-enter yes or no ''')
-					if goal == 'yes':
-						try:
-							date_to_finish = input('''please enter date you would like to finish by,
-enter in the format of m/d/yyyy: ''')
-							check_if_date(date_to_finish)
-							book_to_add_df['date_to_finish'] = date_to_finish
-						except Exception as e:
-							print('improper date, ', e)
-						interm_page_goal = input('enter yes to input interm goals, these will show up on goal trackers')
-						if interm_page_goal == 'yes':
-							interm_pages = int(input('''Please enter the amount of apges you would like to read and you will then 
-	be prompted for a daten to read them by. pages: '''))
-							check = isinstance(interm_pages, int)
-							if check is True:
-								book_to_add_df['page number goal'] = interm_pages
-								date_interm = input('''When would you like to finish them by, 
-		please enter in the format d/m/yyyy: ''')
-								try:
-									check_if_date(date_interm)
-									book_to_add_df['finish_page_date'] = date_interm
-								except Exception as e:
-									print('improper date', e)
+					try:
+						book_to_add_df =  pd.DataFrame(book_to_add).transpose()
+						pages = pd.to_numeric(book_to_add_df['Number of Pages'])
+						book_to_add_df['Number of Pages'] = pages
+						book_to_add_df['date_added'] = datetime.datetime.now()
+						book_to_add_df['page number goal'] = None
+						book_to_add_df['finish_page_date'] = None
+						book_to_add_df['date_to_finish'] = None
+
+						goal = input('''Would you like to set goals around this book, please 
+	enter yes or no ''')
+						if goal == 'yes':
+							try:
+								date_to_finish = input('''please enter date you would like to finish by,
+	enter in the format of m/d/yyyy: ''')
+								print(date_to_finish)
+								print(type(date_to_finish))
+								check_if_date(date_to_finish)
+								book_to_add_df['date_to_finish'] = date_to_finish
+								interm_page_goal = input('enter yes to input interm goals, these will show up on goal trackers: ')
+								if interm_page_goal == 'yes':
+									interm_pages = int(input('''Please enter the amount of apges you would like to read and you will then 
+			be prompted for a daten to read them by. pages: '''))
+									check = isinstance(interm_pages, int)
+									if check is True:
+										book_to_add_df['page number goal'] = interm_pages
+										date_interm = input('''When would you like to finish them by, 
+				please enter in the format d/m/yyyy: ''')
+										try:
+											check_if_date(date_interm)
+											book_to_add_df['finish_page_date'] = date_interm
+										except Exception as e:
+											print('improper date', e)
+									else:
+										pass
+							except Exception as e:
+								print('improper date, ', e)
 							else:
-								date_interm = None
-								interm_pages = None
-								book_to_add_df['page number goal'] = interm_pages
-								book_to_add_df['finish_page_date'] = date_interm
-						else:
-							date_to_finish =None
-							book_to_add_df['date_to_finish'] = date_to_finish
+									pass
+					except Exception as e:
+						print('could not make dataframe, no book picked up, ', e)
+					print('Here is what you entered, would you like to add?')	
 					print(book_to_add_df)
+					# book added here for add
+					add_to_db = input('enter yes to add: ')
+					if add_to_db == 'yes':
+						try:
+							book_to_add_df.to_sql(self.current_read_table, con, if_exists='append')
+							print(book_to_add_df)
+							print('You have added book')
+						except Exception as e:
+							print('book was not added because ',e)
+					print(intro)
 				elif choice == 'new':
 					print('new section not done yet')
+					# basically same all functinonality has been done for this, take info from
+					# adding new pick and combine with goals part
+					# the question is, should this re factored, prob yes
+					# method to take in new book for dataframe, method to load to 
+					# dataframe and add goals to it
 				else:
 					print('That choice wasnt recongized')
+					print(intro)
 			elif user_input == 'finish':
 				pass
 			elif user_input == 'back':
 				pass
 			else:
-				print('The choice was not recongized, please try again')
+				print('not an option')
+				print(intro)
+		else:
+			print('You have entereed back')
 
 def check_if_date(date):
-	check = datetime.datetime.strptime(date_to_finish, '%m/%d/%Y')
+	check = datetime.datetime.strptime(date, '%m/%d/%Y')
 	if check is check.date:
 		print('not a date')
+		raise ValueError()
+
+def check_if_int(number):
+	check = isinstance(number, int)
+	print(check)
+	if check is False:
+		print('cant be empty or not a number')
 		raise ValueError()
 
 db_location = '/home/mike/Documents/coding_all/productivity_app/'
