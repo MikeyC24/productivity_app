@@ -122,9 +122,10 @@ title, author and page numbers are mandatory, the genre, and reason for reading 
 						print('could not write to database,', e)
 
 	def current_goals_and_reads(self):
-		print('''Please enter show to see list of books on book list, current to see books
+		intro = '''Please enter show to see list of books on book list, current to see books
 you are currently reading, enter new to add a book to current read and enter finish
-to move a book out of current read to finished list''')
+to move a book out of current read to finished list'''
+		print(intro)
 		user_input = None
 		con = None
 		try:
@@ -136,24 +137,74 @@ to move a book out of current read to finished list''')
 			if user_input == 'show':
 				df_read = pd.read_sql('SELECT * FROM %s' % (self.user_book_list), con, index_col='index')
 				print(df_read.head(100))
+				print(intro)
 			elif user_input == 'current':
 				try:
-					df_read = pd.read_sql('SELECT * FROM %s' % (self.current_read_table), con, index_col='index')
-					print(df_read.head(100))
+					df_user_read = pd.read_sql('SELECT * FROM %s' % (self.current_read_table), con, index_col='index')
+					print(df_user_read.head(100))
 				except Exception as e:
 					print('no list exists or hit error, ', e)
+				print(intro)
 			elif user_input == 'new':
+				book_to_add_df = None
 				print('Do you want to move a book over from your read list or add new book to current read')
 				choice = input('enter move or new: ')
 				if choice == 'move':
-					df_read = pd.read_sql('SELECT * FROM %s' % (self.user_book_list), con, index_col='index')
-					print(df_read.head(100))
+					try:
+						df_read = pd.read_sql('SELECT * FROM %s' % (self.user_book_list), con, index_col='index')
+						print(df_read.head(100))
+					except Exception as e:
+						print('could not find database or an error occurred, ', e)
+					print(df_read.index)
 					try:
 						book_number = int(input('Enter the index number of the book to add: '))
-						if book_number < df_read.shape[0]
-						raise ValueError()
+						if book_number > df_read.shape[0]:
+							raise ValueError()
+						book_to_add = df_read.iloc[book_number]
 					except Exception as e:
 						print('not an option or not a number, ', e)
+					#print(book_to_add)
+					#rerun books here if there are more to add
+					#book_to_add = book_to_add.transpose()
+					book_to_add_df =  pd.DataFrame(book_to_add).transpose()
+					book_to_add_df['date_added'] = datetime.datetime.now()
+					goal = input('''Would you like to set goals around this book, please 
+enter yes or no ''')
+					if goal == 'yes':
+						try:
+							date_to_finish = input('''please enter date you would like to finish by,
+enter in the format of m/d/yyyy: ''')
+							check_if_date(date_to_finish)
+							book_to_add_df['date_to_finish'] = date_to_finish
+						except Exception as e:
+							print('improper date, ', e)
+						interm_page_goal = input('enter yes to input interm goals, these will show up on goal trackers')
+						if interm_page_goal == 'yes':
+							interm_pages = int(input('''Please enter the amount of apges you would like to read and you will then 
+	be prompted for a daten to read them by. pages: '''))
+							check = isinstance(interm_pages, int)
+							if check is True:
+								book_to_add_df['page number goal'] = interm_pages
+								date_interm = input('''When would you like to finish them by, 
+		please enter in the format d/m/yyyy: ''')
+								try:
+									check_if_date(date_interm)
+									book_to_add_df['finish_page_date'] = date_interm
+								except Exception as e:
+									print('improper date', e)
+							else:
+								date_interm = None
+								interm_pages = None
+								book_to_add_df['page number goal'] = interm_pages
+								book_to_add_df['finish_page_date'] = date_interm
+						else:
+							date_to_finish =None
+							book_to_add_df['date_to_finish'] = date_to_finish
+					print(book_to_add_df)
+				elif choice == 'new':
+					print('new section not done yet')
+				else:
+					print('That choice wasnt recongized')
 			elif user_input == 'finish':
 				pass
 			elif user_input == 'back':
@@ -161,9 +212,17 @@ to move a book out of current read to finished list''')
 			else:
 				print('The choice was not recongized, please try again')
 
+def check_if_date(date):
+	check = datetime.datetime.strptime(date_to_finish, '%m/%d/%Y')
+	if check is check.date:
+		print('not a date')
+		raise ValueError()
+
 db_location = '/home/mike/Documents/coding_all/productivity_app/'
 reading = ReadingClass(db_location)
 reading.user_menu()
+
+
 
 '''
 not raising errors as it should
