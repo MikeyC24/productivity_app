@@ -167,69 +167,54 @@ to move a book out of current read to finished list'''
 						book_to_add = df_read.iloc[book_number]
 					except Exception as e:
 						print('not an option or out of range, or prior error, ', e)
-					#print(book_to_add)
-					#rerun books here if there are more to add
-					#book_to_add = book_to_add.transpose()
 					try:
 						book_to_add_df =  pd.DataFrame(book_to_add).transpose()
 						pages = pd.to_numeric(book_to_add_df['Number of Pages'])
 						book_to_add_df['Number of Pages'] = pages
 						book_to_add_df['date_added'] = datetime.datetime.now()
-						book_to_add_df['page number goal'] = None
-						book_to_add_df['finish_page_date'] = None
-						book_to_add_df['date_to_finish'] = None
-
-						goal = input('''Would you like to set goals around this book, please 
-	enter yes or no ''')
-						if goal == 'yes':
-							try:
-								date_to_finish = input('''please enter date you would like to finish by,
-	enter in the format of m/d/yyyy: ''')
-								print(date_to_finish)
-								print(type(date_to_finish))
-								check_if_date(date_to_finish)
-								book_to_add_df['date_to_finish'] = date_to_finish
-								interm_page_goal = input('enter yes to input interm goals, these will show up on goal trackers: ')
-								if interm_page_goal == 'yes':
-									interm_pages = int(input('''Please enter the amount of apges you would like to read and you will then 
-			be prompted for a daten to read them by. pages: '''))
-									check = isinstance(interm_pages, int)
-									if check is True:
-										book_to_add_df['page number goal'] = interm_pages
-										date_interm = input('''When would you like to finish them by, 
-				please enter in the format d/m/yyyy: ''')
-										try:
-											check_if_date(date_interm)
-											book_to_add_df['finish_page_date'] = date_interm
-										except Exception as e:
-											print('improper date', e)
-									else:
-										pass
-							except Exception as e:
-								print('improper date, ', e)
-							else:
-									pass
+						book_to_add_df = add_goals_to_existing_db_for_book(book_to_add_df)
+						print('Here is what you entered, would you like to add?')	
+						print(book_to_add_df)
+						# book added here for add
+						if book_to_add_df is not None:
+							add_to_db = input('enter yes to add: ')
+							if add_to_db == 'yes':
+								try:
+									book_to_add_df.to_sql(self.current_read_table, con, if_exists='append')
+									print(book_to_add_df)
+									print('You have added book')
+								except Exception as e:
+									print('book was not added because ',e)
+							print(intro)
+						else:
+							raise ValueError()
 					except Exception as e:
 						print('could not make dataframe, no book picked up, ', e)
-					print('Here is what you entered, would you like to add?')	
-					print(book_to_add_df)
-					# book added here for add
-					add_to_db = input('enter yes to add: ')
-					if add_to_db == 'yes':
-						try:
-							book_to_add_df.to_sql(self.current_read_table, con, if_exists='append')
-							print(book_to_add_df)
-							print('You have added book')
-						except Exception as e:
-							print('book was not added because ',e)
-					print(intro)
 				elif choice == 'new':
-					print('new section not done yet')
-					# basically same all functinonality has been done for this, take info from
-					# adding new pick and combine with goals part
-					# the question is, should this re factored, prob yes
-					# method to take in new book for dataframe, method to load to 
-					# dataframe and add goals to it
+					try:
+						book_to_add_df = add_new_book()
+						#pages = pd.to_numeric(book_to_add_df['Number of Pages'])
+						#book_to_add_df['Number of Pages'] = pages
+						book_to_add_df['date_added'] = datetime.datetime.now()
+						print(book_to_add_df.head())
+						book_to_add_df = add_goals_to_existing_db_for_book(book_to_add_df)
+						print('Here is what you entered, would you like to add?')	
+						print(book_to_add_df)
+						# book added here for add
+						if book_to_add_df is not None:
+							add_to_db = input('enter yes to add: ')
+							if add_to_db == 'yes':
+								try:
+									book_to_add_df.to_sql(self.current_read_table, con, if_exists='append')
+									print(book_to_add_df)
+									print('You have added book')
+								except Exception as e:
+									print('book was not added because ',e)
+							print(intro)
+						else:
+							raise ValueError()
+					except Exception as e:
+						print('could not make dataframe, no book picked up, ', e)
 				else:
 					print('That choice wasnt recongized')
 					print(intro)
@@ -256,6 +241,81 @@ def check_if_int(number):
 		print('cant be empty or not a number')
 		raise ValueError()
 
+def add_goals_to_existing_db_for_book(dataframe):
+	df_columns = dataframe.columns
+	needed_array = ['Author', 'Number of Pages', 'Reason for reading', 'Title', 
+	'Genre', 'date_added']
+	for x in df_columns:
+		if x in needed_array:
+			pass
+		else:
+			raise ValueError()
+	e = None
+	#  finish book goal, interm page and date for it goal, add it and return dataframe
+	dataframe['page number goal'] = None
+	dataframe['finish_page_date'] = None
+	dataframe['date_to_finish'] = None
+
+	goal = input('''Would you like to set goals around this book, please 
+enter yes or no: ''')
+	if goal == 'yes':
+		try:
+			date_to_finish = input('''please enter date you would like to finish by,
+enter in the format of m/d/yyyy: ''')
+			check_if_date(date_to_finish)
+			dataframe['date_to_finish'] = date_to_finish
+			interm_page_goal = input('enter yes to input interm goals, these will show up on goal trackers: ')
+			if interm_page_goal == 'yes':
+				interm_pages = int(input('''Please enter the amount of apges you would like to read and you will then 
+be prompted for a daten to read them by. pages: '''))
+				check = isinstance(interm_pages, int)
+				if check is True:
+					dataframe['page number goal'] = interm_pages
+					date_interm = input('''When would you like to finish them by, 
+please enter in the format d/m/yyyy: ''')
+					try:
+						check_if_date(date_interm)
+						dataframe['finish_page_date'] = date_interm
+					except Exception as e:
+						print('improper interm date date', e)
+						return None
+		except Exception as e:
+			print('improper finish date, ', e)
+			return None
+	return dataframe
+
+# this only covers one book right now
+def add_new_book():
+	try:	
+		title = input('Please enter the name of the book, be case sensitive: ').capitalize()
+		if len(title) < 1:
+			print('cant be empty')
+			raise ValueError()
+		author = input('''Please enter the author, be case sensitive. If there is
+more than one author, enter a comma after each auther: ''').capitalize()
+		if len(author) < 1:
+			print('cant be empty')
+			raise ValueError()
+		number_pages = int(input('Please enter the number of pages: '))
+		check = isinstance(number_pages, int)
+		print(check)
+		if check is False:
+			print('not a number')
+			raise ValueError()
+		genre = 'None entered'
+		genre = input('Please enter the genre: ').capitalize()
+		reason_read = 'None Entered'
+		reason_read = input('please enter the reason for reading: ')
+	except Exception as e:
+				print('hit error,', e)
+				return None
+	df = pd.DataFrame({'Title': title, 'Author':author, 
+					'Number of Pages': number_pages, 'Genre': genre, 
+					'Reason for reading': reason_read}, index=[0])
+	print(df)
+	return df
+
+
 db_location = '/home/mike/Documents/coding_all/productivity_app/'
 reading = ReadingClass(db_location)
 reading.user_menu()
@@ -264,4 +324,14 @@ reading.user_menu()
 
 '''
 not raising errors as it should
+'''
+
+'''
+it would be cool to gave a reocurring method which could take variables in for 
+column name, type, question and spit out the same questioning process
+then have tests for it
+would save a lot of time 
+may even be usful for others
+
+should be also done one for adding a variable to sql thru prompt menu
 '''
