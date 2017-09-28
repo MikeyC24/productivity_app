@@ -14,36 +14,40 @@ class ReadingClass:
 	database_name = 'user_reading_database'
 	user_book_list = 'user_book_list'
 	current_read_table = 'current_read_table'
+	finished_book_table = 'finished_book_table'
 
 	def __init__(self, db_location):
 		self.db_location = db_location
 		
 
 	def user_menu(self):
-		print('''Welcome to the reading class of this App. Here you can look at previosuly
+		intro = '''Welcome to the reading class of this App. Here you can look at previosuly
 read items, check target list and goals, and see where you are currently at. Enter 1 to add
-a book or reading to target list. Enter 2 to move a new book to current read section and/or
-update goals. Enter 3 to input a book into finished list. Enter 4 to add and update your goals. Enter 999
-to quit.''')
+a book or reading to target list. Enter 2 to move a new book to current read section,
+update goals, and/or move a book to your finished list. Enter 3 to ......
+Enter 4 to add and update your goals. Enter 999
+to quit.'''
+		print(intro)
 		menu_input = 0
 		while menu_input != 999:
 			# gonna need to add something to resee menu
 			#try:
-			menu_input = int(input('please enter selection(999 to quit): '))
-			if menu_input == 1:
-				print('add books')
-				self.add_readings()
-			elif menu_input ==  2:
-				print('current reads')
-				self.current_goals_and_reads()
-			elif menu_input == 3:
-				print('input book to finished list')
-			elif menu_input == 4:
-				print('add and update goals')
-			elif menu_input == 999:
-				pass
-			else:
-				print('That was not a recongized command')
+				print(intro)
+				menu_input = int(input('please enter selection(999 to quit): '))
+				if menu_input == 1:
+					print('add books')
+					self.add_readings()
+				elif menu_input ==  2:
+					print('current reads')
+					self.current_goals_and_reads()
+				elif menu_input == 3:
+					print('input book to finished list')
+				elif menu_input == 4:
+					print('add and update goals')
+				elif menu_input == 999:
+					pass
+				else:
+					print('That was not a recongized command')
 			#except Exception as e:
 			#	print('That command was not reconigzed, are you sure it was a number')
 		else:
@@ -85,11 +89,10 @@ title, author and page numbers are mandatory, the genre, and reason for reading 
 					print('cant be empty')
 					raise ValueError()
 				number_pages = int(input('Please enter the number of pages: '))
-				check = isinstance(number_pages, int)
-				print(check)
-				if check is False:
-					print('not a number')
-					raise ValueError()
+				try:
+					check_if_int(number_pages)
+				except Exception as e:
+					print('not a number, ', e)
 				genre = 'None entered'
 				genre = input('Please enter the genre: ').capitalize()
 				reason_read = 'None Entered'
@@ -133,6 +136,7 @@ to move a book out of current read to finished list'''
 		except Exception as e:
 			print(' no current datatable exists,', e)
 		while user_input != 'back':
+			print(intro)
 			user_input = input('Please enter choice: ')
 			if user_input == 'show':
 				df_read = pd.read_sql('SELECT * FROM %s' % (self.user_book_list), con, index_col='index')
@@ -171,7 +175,7 @@ to move a book out of current read to finished list'''
 						book_to_add_df =  pd.DataFrame(book_to_add).transpose()
 						pages = pd.to_numeric(book_to_add_df['Number of Pages'])
 						book_to_add_df['Number of Pages'] = pages
-						book_to_add_df['date_added'] = datetime.datetime.now()
+						book_to_add_df['date_added_to_current_read'] = datetime.datetime.now()
 						book_to_add_df = add_goals_to_existing_db_for_book(book_to_add_df)
 						print('Here is what you entered, would you like to add?')	
 						print(book_to_add_df)
@@ -219,14 +223,51 @@ to move a book out of current read to finished list'''
 					print('That choice wasnt recongized')
 					print(intro)
 			elif user_input == 'finish':
-				pass
+				try:
+					df_user_read = pd.read_sql('SELECT * FROM %s' % (self.current_read_table), con, index_col='index')
+					df_user_read.reset_index(inplace=True)
+					print(df_user_read.head(100))
+				except Exception as e:
+					print('no list exists or hit error, ', e)
+				print('''Below are the list of books in your current read section,
+which one would you like to add to finished?''')
+				print(df_user_read)
+				book_finish = int(input('Please enter the index number: '))
+				try:
+					check_if_int(book_finish)
+				except Exception as e:
+					print('not a number, ', e)
+					user_input = 'finish'
+				try:
+					if book_finish > df_user_read.shape[0]:
+						raise ValueError()
+				except Exception as e:
+					print('Number is out of range of list, ', e)
+					user_input = 'finish'
+				print('You have chosen the following book:')
+				book_to_add = df_user_read.iloc[book_finish]
+				print(book_to_add)
+				correct = input('''If that is the correct back please enter yes, otherwise
+enter any other key to go back: ''')
+				if correct == 'yes':
+					try:
+						book_to_add_df =  pd.DataFrame(book_to_add).transpose()
+						book_to_add_df.drop('index', axis=1, inplace=True)
+						book_to_add_df['date_added_to_finished'] = datetime.datetime.now()
+						print(book_to_add_df.head())
+						book_to_add_df.to_sql(self.finished_book_table, con, if_exists='append')
+						print('Book added to database')
+					except Exception as e:
+						print('could not add book to finsied list, ', e)
+				else:
+					user_input == 'finish'
 			elif user_input == 'back':
-				pass
+				print('user entered back')
 			else:
 				print('not an option')
 				print(intro)
 		else:
-			print('You have entereed back')
+			print('You have entered back')
 
 def check_if_date(date):
 	check = datetime.datetime.strptime(date, '%m/%d/%Y')
@@ -312,7 +353,6 @@ more than one author, enter a comma after each auther: ''').capitalize()
 	df = pd.DataFrame({'Title': title, 'Author':author, 
 					'Number of Pages': number_pages, 'Genre': genre, 
 					'Reason for reading': reason_read}, index=[0])
-	print(df)
 	return df
 
 
