@@ -61,23 +61,76 @@ def notes_to_dict(file):
 	title_dict[title] = topic_dict
 	return title_dict
 
+"""
+class DictQuery(dict):
+	def get(self,path,default = None):
+		keys = path.split('/')
+		val = None
+		print(keys)
+		for key in keys:
+			if val:
+				if isininstance(val, list):
+					val = [ v.get(key, default) if v else None for v in val]
+				else:
+					val = val.get(key, default)
+			else:
+				val = dict.get(self, key, default)
+
+			if not val:
+				break;
+		return val
+
+
+
+
+title_dict = notes_to_dict(file)
+key_to_get = 'Asset Based Finance/The Process of Asset-based Financing/Analyzing the borrower'
+for item in title_dict.items():
+	#print(item)
+	print(DictQuery(item).get(key_to_get))
+#print(q_as)
+"""
+title_dict = notes_to_dict(file)
+for key in title_dict.keys():
+	key_use = key
+	print(key)
+	print(len(key))
+print(len('Asset Based Finance'))
+title_dict = notes_to_dict(file)
+key_list = ['Asset Based Finance']
+for key in key_list:
+	check = title_dict.get(key)
+	print(check)
+
+"""
 # tutorial on passing json to dict (this example also cover pulling from web)
 # http://www.prelc.si/koleznik/tutorial-for-parsing-json-and-creating-sqlite3-database-in-python/
 # handling nested dicts and get requests https://www.haykranen.nl/2016/02/13/handling-complex-nested-dicts-in-python/
-	def store_json_to_db(dict, db_name, table_name):
-		json_dict = json.dumps(dict, sort_keys=True, indent=4)
-		con = sqlite3.connect(db_name)
-		cur = con.cursor()
-		cur.execute('''CREATE TABLE IF NOT EXISTS %s
-					(cards_list
-					''') % (table_name)
+def store_json_to_db(dict, db_name, table_name):
+	json_dict = json.dumps(dict, sort_keys=True, indent=4)
+	print(type(json_dict))
+	table_name = table_name
+	con = sqlite3.connect(db_name)
+	cur = con.cursor()
+	cur.execute('''CREATE TABLE IF NOT EXISTS %s
+				(cards_list)
+				''' % (table_name))
+	insert = "INSERT INTO {} VALUES (?)".format(table_name)
+	cur.execute("INSERT INTO cards_list"
+				"("
+				"cards_list"
+				") VALUES (?)",
+				(json_dict))
+
+	cur.execute(insert, json_dict)
+	con.commit()
 
 
 flashcards_db = '/home/mike/Documents/credit/flashcards_db'
 flashcards_table = 'flashcards_table'
 title_dict = notes_to_dict(file)
 store_json_to_db(title_dict, flashcards_db, flashcards_table)
-
+"""
 """
 title_dict = notes_to_dict(file)
 j_dict = json.dumps(title_dict, sort_keys=True, indent=4)
@@ -87,7 +140,7 @@ py_dict_from_j = json.loads(j_dict)
 print('py json dict', type(py_dict_from_j))
 """
 """
-for k,v in py_dict_from_j.items():
+for k,v in title_dict.items():
 	print(k)
 	#print(v)
 	for kk,vv in v.items():
@@ -95,8 +148,8 @@ for k,v in py_dict_from_j.items():
 		for k3, v3 in vv.items():
 			print(k3)
 			for k4,v4 in v3.items():
-				print(k4)
-				print(v4)
+				#print(k4)
+				#print(v4)
 				pass
 """
 """
