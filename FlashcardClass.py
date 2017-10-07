@@ -60,7 +60,72 @@ def notes_to_dict(file):
 	topic_dict[topic] = subtopic_dict
 	title_dict[title] = topic_dict
 	return title_dict
+title_dict = notes_to_dict(file)
+for k,v in title_dict.items():
+	print(k)
+	#print(v)
+	for kk,vv in v.items():
+		print(kk)
+		for k3, v3 in vv.items():
+			print(k3)
+			for k4,v4 in v3.items():
+				#print(k4)
+				#print(v4)
+				pass
 
+def write_to_csv_as_json(dict, file_name):
+	json_dict = json.dumps(dict, sort_keys=True, indent=4,ensure_ascii=False)
+	with open(file_name, 'w') as outfile:
+		outfile.write(json_dict)
+
+def save_json_to_file(dict, file_name):
+	out_file = open(file_name, 'w')
+	json.dump(dict, out_file,  sort_keys=True, indent=4,ensure_ascii=False)
+	out_file.close()
+
+def three_time_json_to_csv(dict, file_name):
+	json_dict = json.dumps(dict, sort_keys=True, indent=4)
+	with open(file_name, 'w') as f:
+		f.write(json_dict)
+
+#write_to_csv_as_json(title_dict, 'json_csv_test')
+
+# this works to write json to csv and to read from csv
+def open_csv_convert_json_to_dict(file_name):
+	f = open(file, 'r')
+	print(f)
+	print(type(f))
+	data = f.read()
+	print(data)
+	print(type(data))
+	dict = json.load(data)
+	print(data)
+	print(type(data))
+
+def read_it_back(file_name):
+	with open(file_name, 'r') as f:
+		data = f.read()
+		dict_back = json.loads(data)
+		print(dict_back)
+		print(type(dict_back))
+
+file_from_csv = '/home/mike/Documents/coding_all/productivity_app/json_csv_test3'
+three_time_json_to_csv(title_dict, 'json_csv_test3')
+read_it_back(file_from_csv)
+
+"""
+def open_csv_convert_json_to_dict(file_name):
+	in_file = (file_name, 'r')
+	new_dict = json.load(in_file)
+	in_file.close()
+	return new_dict
+"""
+file_from_csv = '/home/mike/Documents/credit/json_csv_test1'
+#open_csv_convert_json_to_dict(file_from_csv)
+#new_dict = open_csv_convert_json_to_dict(file_from_csv)
+#print(new_dict)
+
+# json_dict = json.dumps(dict, sort_keys=True, indent=4)
 """
 class DictQuery(dict):
 	def get(self,path,default = None):
@@ -90,6 +155,8 @@ for item in title_dict.items():
 	print(DictQuery(item).get(key_to_get))
 #print(q_as)
 """
+"""
+# checking for keys using above class
 title_dict = notes_to_dict(file)
 for key in title_dict.keys():
 	key_use = key
@@ -101,7 +168,7 @@ key_list = ['Asset Based Finance']
 for key in key_list:
 	check = title_dict.get(key)
 	print(check)
-
+"""
 """
 # tutorial on passing json to dict (this example also cover pulling from web)
 # http://www.prelc.si/koleznik/tutorial-for-parsing-json-and-creating-sqlite3-database-in-python/
