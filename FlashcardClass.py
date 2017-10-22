@@ -13,6 +13,7 @@ file4 = '/home/mike/Documents/credit/flash_cards_aba_one_subtopic_docx.docx'
 abl_full = '/home/mike/Documents/credit/Asset_based_financing_notes_full_flashcard_format'
 test_multiple = '/home/mike/Documents/credit/flashcard_test_multiple.txt'
 test_multiple_topics_only = '/home/mike/Documents/credit/flashcard_test_multiple_topics_only.txt'
+test_multiple_topics_only_two = '/home/mike/Documents/credit/ABA_flashcard_format_test_purpose.txt'
 f = open(file, 'r')
 #print(note_file.read())
 lines = f.readlines()
@@ -160,7 +161,10 @@ def grab_q_a_dict(lines, keyword, keyword_count):
 	q_a_dict = dict(zip(questions_array, answer_array))
 	return q_a_dict
 
+"""
+#blocked off for now, this is now going thru suer menu
 title_dict = notes_to_dict_just_topics(test_multiple_topics_only)
+title_dict_two = notes_to_dict_just_topics(test_multiple_topics_only_two)
 # below is just to print full dict 10.21.22
 for k,v in title_dict.items():
 	print('first key')
@@ -173,66 +177,7 @@ for k,v in title_dict.items():
 			print('third key')
 			print(k3)
 			print(v3)
-
-"""
-def notes_to_dict(file):
-	f = open(file, 'r')
-	lines = f.readlines()
-	f.close()
-	dict_topic = {}
-	questions_array = []
-	answer_array = []
-	topic = None
-	subtopic = None
-	title = None
-	topic_dict = {}
-	subtopic_dict = {}
-	title_dict = {}
-	for i, line in enumerate(lines):
-		#print(i, line)
-		if 'Title:' in line:
-			title = line[7:]
-			continue
-		if 'Topic:' in line:
-			topic = line[6:]
-			continue
-		topic_check = topic
-		if 'Subtopic:' in line:
-			subtopic = line[9:]
-			continue
-		subtopic_check = subtopic
-		if 'Q:' in line:
-			questions_array.append(line)
-			continue
-		if 'A:' in line:
-			answer_array.append(line)
-	q_a_dict = dict(zip(questions_array, answer_array))
-	subtopic_dict[subtopic] = q_a_dict
-	topic_dict[topic] = subtopic_dict
-	title_dict[title] = topic_dict
-	return title_dict
-"""
-"""
-title_dict = notes_to_dict_full(test_multiple)
-for k,v in title_dict.items():
-	print('first key')
-	print(k)
-	#print(v)
-	for kk,vv in v.items():
-		print('second key')
-		print(kk)
-		for k3, v3 in vv.items():
-			print('third key')
-			print(k3)
-			for k4,v4 in v3.items():
-				print(k4)
-				print(v4)
-				pass
-"""
-
-
-
-
+"""			
 
 #This are storage and retriveal methods of dicts, will come
 #back to these once able to write dict with multiple topics
@@ -253,10 +198,16 @@ def read_dict_back_from_json(file_name):
 		print(dict_back)
 		print(type(dict_back))
 
+"""
+# bocked off for now, this is geting all json stuff
 file_from_csv = '/home/mike/Documents/coding_all/productivity_app/json_csv_with_multiple_topic_upload'
 write_dict_json_csv(title_dict, 'json_csv_with_multiple_topic_upload')
+file_from_csv_two = '/home/mike/Documents/coding_all/productivity_app/json_csv_with_multiple_topic_upload_two'
+write_dict_json_csv(title_dict_two, 'json_csv_with_multiple_topic_upload_two')
 
 read_dict_back_from_json(file_from_csv)
+read_dict_back_from_json(file_from_csv_two)
+"""
 
 # 10.21.17 now need method to retrieve dict or dicts we want to test
 # options for user 1. store new dict or update dict
@@ -279,12 +230,59 @@ then go into user options
 
 """
 
+def user_menu():
+	intro = '''Welcome to the Flashcard center. Below will show all current
+flash card decks by title available. To use a current deck, enter 1. To add a 
+new flash card debt press 2. To update a current deck press 3. To turn a deck into
+an outline press 4. Enter 999 to quit.'''
+	print(intro)
+	menu_input = 0
+	while menu_input != 999:
+		# gonna need to add something to resee menu
+		#try:
+			print(intro)
+			menu_input = int(input('please enter selection(999 to quit): '))
+			if menu_input == 1:
+				print('review cards')
+			elif menu_input ==  2:
+				print('add new deck')
+				upload_new_deck()
+			elif menu_input == 3:
+				print('update deck')
+			elif menu_input == 4:
+				print('get outline')
+			elif menu_input == 999:
+				pass
+			else:
+				print('That was not a recongized command')
+		#except Exception as e:
+		#	print('That command was not reconigzed, are you sure it was a number')
+	else:
+		print('goodbye')
 
 
+def upload_new_deck():
+	print(""" You have chosen to upload a new deck. Before doing so please
+make sure that the format is correct. There is a title labled as "title:" on the top.
+Each topic is labeled as "Topic:" and all the contentis formated as Q: "" and A: "". 
+If not sure please check the user guide for the proper outline/display""")
+	# for now, to enter new deck, use will type in full file location
+	try:
+		file_location = input('Please enter the file exactly: ')
+		print(file_location)
+		print(type(file_location))
+		# create deck from user input
+		deck_to_load = notes_to_dict_just_topics(file_location)
+		# get title of deck to use for storage and retrieval 
+		for k,v in deck_to_load.items():
+			title = string(k)
+		print(deck_to_load)
+		print(k)
+	except Exception as e:
+		print('That file was note found or did not work,', e)
 
 
-
-
+user_menu()
 
 
 
@@ -313,92 +311,6 @@ class DictQuery(dict):
 		return val
 
 """
-
-
-
-
-
-
-"""
-for i, line in enumerate(lines):
-	#print(i, line)
-	if 'Topic:' in line:
-		topic = line[7:]
-		continue
-	if 'Subtopic:' in line:
-		subtopic = line[9:]
-		continue
-	if 'Q:' in line:
-		questions_array.append(line)
-		continue
-	if 'A:' in line:
-		answer_array.append(line)
-		print(answer_array)
-		continue
-	if 'Subtopic:' in line:
-		#print('q_a', questions_array)
-		title = 'q_a_dict'+subtopic
-		print(subtopic)
-		print(title)
-		title = dict(zip(questions_array, answer_array))
-		for k,v in title.items():
-			print('v', v)
-		#print('q_a_dict', q_a_dict)
-		subtopic_dict[subtopic] = title
-		questions_array= []
-		answer_array= []
-		break
-
-#q_a_dict = dict(zip(questions_array, answer_array))
-#subtopic_dict[subtopic] = q_a_dict
-"""
-
-"""
-
-line_check= 'continue'
-for i, line in enumerate(lines):
-	print(i, line)
-	if 'Topic:' in line:
-		topic = line[7:]
-		continue
-	if 'Subtopic:' in line:
-		subtopic = line[9:]
-		continue
-	while line_check != 'break':
-		line_check = line_check('Subtopic:', line)
-		if 'Q:' in line:
-			questions_array.append(line)
-			continue
-		if 'A:' in line:
-			answer_array.append(line)
-	else:
-		print('hit next sub topic')
-q_a_dict = dict(zip(questions_array, answer_array))
-subtopic_dict[subtopic] = q_a_dict
-
-def line_check(check_var, line):
-	print(check_var)
-	print(line)
-	if check_var in line:
-		return 'break'
-"""
-#print(questions_array, answer_array)
-"""
-for x in range(len(questions_array)):
-	print('Q', questions_array[x])
-	print('A', answer_array[x])
-print(len(questions_array), len (answer_array))
-print('topic', topic, 'subtopic', subtopic)
-
-print(topic_check)
-print(subtopic_check)
-
-
-dict_2 = dict(zip(questions_array, answer_array))
-for k,v in dict_2.items():
-	print(k,v)
-"""
-
 
 
 
