@@ -6,10 +6,13 @@ import sqlite3
 import datetime
 
 file = '/home/mike/Documents/credit/flashcards_test_note.txt'
-file1 = '/home/mike/Documents/credit/Asset_based_financing_notes.txt'
+file_test_2_topics = '/home/mike/Documents/credit/Asset_based_financing_notes.txt'
 file2 = '/home/mike/Downloads/Aba course 9.5.17 flashcard_format_only.docx'
 file3 = '/home/mike/Documents/credit/flashcards_test_note_docx.docx'
 file4 = '/home/mike/Documents/credit/flash_cards_aba_one_subtopic_docx.docx'
+abl_full = '/home/mike/Documents/credit/Asset_based_financing_notes_full_flashcard_format'
+test_multiple = '/home/mike/Documents/credit/flashcard_test_multiple.txt'
+test_multiple_topics_only = '/home/mike/Documents/credit/flashcard_test_multiple_topics_only.txt'
 f = open(file, 'r')
 #print(note_file.read())
 lines = f.readlines()
@@ -23,7 +26,156 @@ title = None
 topic_dict = {}
 subtopic_dict = {}
 title_dict = {}
+end_and_write = False
 
+def notes_to_dict_full(file):
+	f = open(file, 'r')
+	lines = f.readlines()
+	f.close()
+	dict_topic = {}
+	questions_array = []
+	answer_array = []
+	topic = None
+	subtopic = None
+	title = None
+	topic_dict = {}
+	subtopic_dict = {}
+	title_dict = {}
+	change_next = False
+	end_and_write = False
+
+	while end_and_write == False:
+		for i, line in enumerate(lines):
+			if 'break_program' in line:
+				end_and_write = True
+			#print(i, line)
+			if 'Title:' in line:
+				title = line[7:]
+			# next change for topic
+			if 'Topic:' in line:
+				topic = line[6:]
+				while change_next == False:
+					#if 'Topic:' in line:
+					#	change_next = True
+						#continue
+					if 'Subtopic:' in line:
+						subtopic = line[9:]
+						#continue
+					if 'Q:' in line:
+						questions_array.append(line)
+						#continue
+					if 'A:' in line:
+						answer_array.append(line)
+					if 'Topic:' in line:
+						change_next = True
+					print('topic', line)
+					print('change_next', change_next)
+					q_a_dict = dict(zip(questions_array, answer_array))
+					subtopic_dict[subtopic] = q_a_dict
+					topic_dict[topic] = subtopic_dict
+					title_dict[title] = topic_dict
+			change_next = False
+			if 'Subtopic:' in line:
+				subtopic = line[9:]
+				while change_next == False:
+					if 'Subtopic:' in line:
+						change_next = True
+						#continue
+					if 'Q:' in line:
+						questions_array.append(line)
+						#continue
+					if 'A:' in line:
+						answer_array.append(line)
+					print('subtopic', line)
+					q_a_dict = dict(zip(questions_array, answer_array))
+					subtopic_dict[subtopic] = q_a_dict
+					topic_dict[topic] = subtopic_dict
+					title_dict[title] = topic_dict
+			print(i, line)
+			#if 'Q:' in line:
+			#	questions_array.append(line)
+			#if 'A:' in line:
+			#	answer_array.append(line)
+			#print(line)
+			#q_a_dict = dict(zip(questions_array, answer_array))
+			#subtopic_dict[subtopic] = q_a_dict
+			#topic_dict[topic] = subtopic_dict
+			#title_dict[title] = topic_dict
+		return title_dict
+
+def notes_to_dict_just_topics(file):
+	f = open(file, 'r')
+	lines = f.readlines()
+	f.close()
+	dict_topic = {}
+	questions_array = []
+	answer_array = []
+	topic = None
+	subtopic = None
+	title = None
+	topic_dict = {}
+	subtopic_dict = {}
+	title_dict = {}
+	change_next = False
+	end_and_write = False
+	topic_counter = 0
+
+	while end_and_write == False:
+		for i, line in enumerate(lines):
+			if 'break_program' in line:
+				end_and_write = True
+			#print(i, line)
+			if 'Title:' in line:
+				title = line[7:]
+			if 'Topic:' in line:
+				topic = line[6:]
+				q_a_dict = None
+				q_a_dict = grab_q_a_dict(lines, 'Topic:', topic_counter)
+				topic_counter += 1
+				topic_dict[topic] = q_a_dict
+				#print(topic_dict)
+				#break
+		title_dict[title] = topic_dict
+		return title_dict
+
+def grab_q_a_dict(lines, keyword, keyword_count):
+	#f = open(file, 'r')
+	#lines = f.readlines()
+	#f.close()
+	questions_array = []
+	answer_array = []
+	method_count = 0
+	count_use = keyword_count + 1
+	while method_count <  count_use:
+		for x, line in enumerate(lines):
+			print('inside qa grab', x, line)
+			print('method count before increment', method_count)
+			if keyword in line:
+				method_count += 1
+			print('method count after increment', method_count)	
+			if method_count - 1 == keyword_count:
+				if 'Q:' in line:
+					questions_array.append(line)
+					#continue
+				if 'A:' in line:
+					answer_array.append(line)
+	q_a_dict = dict(zip(questions_array, answer_array))
+	return q_a_dict
+
+title_dict = notes_to_dict_just_topics(test_multiple_topics_only)
+for k,v in title_dict.items():
+	print('first key')
+	print(k)
+	#print(v)
+	for kk,vv in v.items():
+		print('second key')
+		print(kk)
+		for k3, v3 in vv.items():
+			print('third key')
+			print(k3)
+			print(v3)
+
+"""
 def notes_to_dict(file):
 	f = open(file, 'r')
 	lines = f.readlines()
@@ -60,72 +212,54 @@ def notes_to_dict(file):
 	topic_dict[topic] = subtopic_dict
 	title_dict[title] = topic_dict
 	return title_dict
-title_dict = notes_to_dict(file)
+"""
+"""
+title_dict = notes_to_dict_full(test_multiple)
 for k,v in title_dict.items():
+	print('first key')
 	print(k)
 	#print(v)
 	for kk,vv in v.items():
+		print('second key')
 		print(kk)
 		for k3, v3 in vv.items():
+			print('third key')
 			print(k3)
 			for k4,v4 in v3.items():
-				#print(k4)
-				#print(v4)
+				print(k4)
+				print(v4)
 				pass
+"""
 
-def write_to_csv_as_json(dict, file_name):
-	json_dict = json.dumps(dict, sort_keys=True, indent=4,ensure_ascii=False)
-	with open(file_name, 'w') as outfile:
-		outfile.write(json_dict)
 
-def save_json_to_file(dict, file_name):
-	out_file = open(file_name, 'w')
-	json.dump(dict, out_file,  sort_keys=True, indent=4,ensure_ascii=False)
-	out_file.close()
 
-def three_time_json_to_csv(dict, file_name):
+
+"""
+This are storage and retriveal methods of dicts, will come
+back to these once able to write dict with multiple topics and
+subtopics
+# this method takes a dict, turns it into a json file and then
+# writes to csv based on given name
+def write_dict_json_csv(dict, file_name):
 	json_dict = json.dumps(dict, sort_keys=True, indent=4)
 	with open(file_name, 'w') as f:
 		f.write(json_dict)
 
-#write_to_csv_as_json(title_dict, 'json_csv_test')
-
-# this works to write json to csv and to read from csv
-def open_csv_convert_json_to_dict(file_name):
-	f = open(file, 'r')
-	print(f)
-	print(type(f))
-	data = f.read()
-	print(data)
-	print(type(data))
-	dict = json.load(data)
-	print(data)
-	print(type(data))
-
-def read_it_back(file_name):
+# this method takes in a fle name, that is a json dict
+# and turns it back into regular dict
+def read_dict_back_from_json(file_name):
 	with open(file_name, 'r') as f:
 		data = f.read()
 		dict_back = json.loads(data)
 		print(dict_back)
 		print(type(dict_back))
 
-file_from_csv = '/home/mike/Documents/coding_all/productivity_app/json_csv_test3'
-three_time_json_to_csv(title_dict, 'json_csv_test3')
-read_it_back(file_from_csv)
-
+file_from_csv = '/home/mike/Documents/coding_all/productivity_app/json_csv_test4'
+write_dict_json_csv(title_dict, 'json_csv_test4')
+read_dict_back_from_json(file_from_csv)
 """
-def open_csv_convert_json_to_dict(file_name):
-	in_file = (file_name, 'r')
-	new_dict = json.load(in_file)
-	in_file.close()
-	return new_dict
-"""
-file_from_csv = '/home/mike/Documents/credit/json_csv_test1'
-#open_csv_convert_json_to_dict(file_from_csv)
-#new_dict = open_csv_convert_json_to_dict(file_from_csv)
-#print(new_dict)
 
-# json_dict = json.dumps(dict, sort_keys=True, indent=4)
+
 """
 class DictQuery(dict):
 	def get(self,path,default = None):
@@ -145,88 +279,7 @@ class DictQuery(dict):
 				break;
 		return val
 
-
-
-
-title_dict = notes_to_dict(file)
-key_to_get = 'Asset Based Finance/The Process of Asset-based Financing/Analyzing the borrower'
-for item in title_dict.items():
-	#print(item)
-	print(DictQuery(item).get(key_to_get))
-#print(q_as)
 """
-"""
-# checking for keys using above class
-title_dict = notes_to_dict(file)
-for key in title_dict.keys():
-	key_use = key
-	print(key)
-	print(len(key))
-print(len('Asset Based Finance'))
-title_dict = notes_to_dict(file)
-key_list = ['Asset Based Finance']
-for key in key_list:
-	check = title_dict.get(key)
-	print(check)
-"""
-"""
-# tutorial on passing json to dict (this example also cover pulling from web)
-# http://www.prelc.si/koleznik/tutorial-for-parsing-json-and-creating-sqlite3-database-in-python/
-# handling nested dicts and get requests https://www.haykranen.nl/2016/02/13/handling-complex-nested-dicts-in-python/
-def store_json_to_db(dict, db_name, table_name):
-	json_dict = json.dumps(dict, sort_keys=True, indent=4)
-	print(type(json_dict))
-	table_name = table_name
-	con = sqlite3.connect(db_name)
-	cur = con.cursor()
-	cur.execute('''CREATE TABLE IF NOT EXISTS %s
-				(cards_list)
-				''' % (table_name))
-	insert = "INSERT INTO {} VALUES (?)".format(table_name)
-	cur.execute("INSERT INTO cards_list"
-				"("
-				"cards_list"
-				") VALUES (?)",
-				(json_dict))
-
-	cur.execute(insert, json_dict)
-	con.commit()
-
-
-flashcards_db = '/home/mike/Documents/credit/flashcards_db'
-flashcards_table = 'flashcards_table'
-title_dict = notes_to_dict(file)
-store_json_to_db(title_dict, flashcards_db, flashcards_table)
-"""
-"""
-title_dict = notes_to_dict(file)
-j_dict = json.dumps(title_dict, sort_keys=True, indent=4)
-#print(j_dict)
-print('json tpye', type(j_dict))
-py_dict_from_j = json.loads(j_dict)
-print('py json dict', type(py_dict_from_j))
-"""
-"""
-for k,v in title_dict.items():
-	print(k)
-	#print(v)
-	for kk,vv in v.items():
-		print(kk)
-		for k3, v3 in vv.items():
-			print(k3)
-			for k4,v4 in v3.items():
-				#print(k4)
-				#print(v4)
-				pass
-"""
-"""
-this above needs to be turned into a method that outputs a dict - done
-turn dict to json and back for storage
-then that dict is compared to data base
-if its not there it creates a new section
-otherwise it combines with whats currently there
-"""
-
 
 
 
