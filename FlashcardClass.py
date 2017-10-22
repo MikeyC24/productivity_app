@@ -108,22 +108,16 @@ def notes_to_dict_just_topics(file):
 	lines = f.readlines()
 	f.close()
 	dict_topic = {}
-	questions_array = []
-	answer_array = []
 	topic = None
-	subtopic = None
 	title = None
 	topic_dict = {}
-	subtopic_dict = {}
 	title_dict = {}
-	change_next = False
-	end_and_write = False
 	topic_counter = 0
 
 	while end_and_write == False:
 		for i, line in enumerate(lines):
-			if 'break_program' in line:
-				end_and_write = True
+			#if 'break_program' in line:
+			#	end_and_write = True
 			#print(i, line)
 			if 'Title:' in line:
 				title = line[7:]
@@ -138,21 +132,25 @@ def notes_to_dict_just_topics(file):
 		title_dict[title] = topic_dict
 		return title_dict
 
+# this method is used in notes to dict just topics method
+# it is a way to grab only the  q and as under the next topic
+# by feeding in the lines, keyword and the keyword count
+# keyword count is kept in prior method, every time this below method
+# is used the above mehod increases count and feeds it back
+# below method return q and a in dict form
 def grab_q_a_dict(lines, keyword, keyword_count):
-	#f = open(file, 'r')
-	#lines = f.readlines()
-	#f.close()
 	questions_array = []
 	answer_array = []
 	method_count = 0
 	count_use = keyword_count + 1
+	subtopic_dict = {}
 	while method_count <  count_use:
 		for x, line in enumerate(lines):
-			print('inside qa grab', x, line)
-			print('method count before increment', method_count)
+			#print('inside qa grab', x, line)
+			#print('method count before increment', method_count)
 			if keyword in line:
 				method_count += 1
-			print('method count after increment', method_count)	
+			#print('method count after increment', method_count)	
 			if method_count - 1 == keyword_count:
 				if 'Q:' in line:
 					questions_array.append(line)
@@ -163,6 +161,7 @@ def grab_q_a_dict(lines, keyword, keyword_count):
 	return q_a_dict
 
 title_dict = notes_to_dict_just_topics(test_multiple_topics_only)
+# below is just to print full dict 10.21.22
 for k,v in title_dict.items():
 	print('first key')
 	print(k)
@@ -234,14 +233,14 @@ for k,v in title_dict.items():
 
 
 
-"""
-This are storage and retriveal methods of dicts, will come
-back to these once able to write dict with multiple topics and
-subtopics
+
+#This are storage and retriveal methods of dicts, will come
+#back to these once able to write dict with multiple topics
 # this method takes a dict, turns it into a json file and then
 # writes to csv based on given name
+# if master dict is used, file name should prob always be the same
 def write_dict_json_csv(dict, file_name):
-	json_dict = json.dumps(dict, sort_keys=True, indent=4)
+	json_dict = json.dumps(dict, sort_keys=True, indent=3)
 	with open(file_name, 'w') as f:
 		f.write(json_dict)
 
@@ -254,10 +253,44 @@ def read_dict_back_from_json(file_name):
 		print(dict_back)
 		print(type(dict_back))
 
-file_from_csv = '/home/mike/Documents/coding_all/productivity_app/json_csv_test4'
-write_dict_json_csv(title_dict, 'json_csv_test4')
+file_from_csv = '/home/mike/Documents/coding_all/productivity_app/json_csv_with_multiple_topic_upload'
+write_dict_json_csv(title_dict, 'json_csv_with_multiple_topic_upload')
+
 read_dict_back_from_json(file_from_csv)
+
+# 10.21.17 now need method to retrieve dict or dicts we want to test
+# options for user 1. store new dict or update dict
+# 2. pick dict or dicts to test
+# 3. make into outline, use [:] for the lines to drop
+# all the structure, like q's, a's, and " "
 """
+# storing dict
+# at first will limit user to 20 falsh decks (maybe make a way to import/export)
+each title will be stored as a separate csv, 
+code will cycle thru csv
+for csv_file in csv_folders:
+	dict = read_dict_back_from_json(csv_file)
+	if dict.get(user_title, False):
+		dict[user_title]
+	else:
+		add dict
+next make user option menu, always get all available title keys
+then go into user options
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 """
@@ -434,4 +467,10 @@ for block in iter_block_items(document):
 for x in range(len(questions_array)):
 	print('Q', questions_array[x])
 	print('A', answer_array[x])
+"""
+
+
+""" 
+turning python into app
+https://www.quora.com/Can-I-make-an-Android-app-with-Python
 """
