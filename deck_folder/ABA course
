@@ -1,0 +1,15 @@
+{
+   "ABA course\n": {
+      " Due Diligence call\n": {
+         "Q: \u201c why is it important\u201d\n": "A: \u201c because...\u201d\n"
+      },
+      " underwriting process \n": {
+         "Q: \u201c 1st q new topic\u201d\n": "A: \u201cfirst answer new topic\u201d\n",
+         "Q: \u201c 2nd q new topic\u201d\n": "A: \u201csecond answer new topic\u201d\n"
+      },
+      "Industry breakdown\n": {
+         "Q: \u201cbreakdown of each industry\u201d\n": "A: \u201cd,e,f\u201d\n",
+         "Q: \u201cwhat are the main industries\u201d\n": "A: \u201ca,b,c\u201d\n"
+      }
+   }
+}

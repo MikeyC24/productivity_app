@@ -186,7 +186,8 @@ for k,v in title_dict.items():
 # if master dict is used, file name should prob always be the same
 def write_dict_json_csv(dict, file_name):
 	json_dict = json.dumps(dict, sort_keys=True, indent=3)
-	with open(file_name, 'w') as f:
+	location = '/home/mike/Documents/coding_all/productivity_app/deck_folder/' + file_name
+	with open(location, 'w') as f:
 		f.write(json_dict)
 
 # this method takes in a fle name, that is a json dict
@@ -235,12 +236,23 @@ def user_menu():
 flash card decks by title available. To use a current deck, enter 1. To add a 
 new flash card debt press 2. To update a current deck press 3. To turn a deck into
 an outline press 4. Enter 999 to quit.'''
-	print(intro)
+	#path = '/home/mike/Documents/coding_all/productivity_app/*.csv'
+	#print(intro)
 	menu_input = 0
 	while menu_input != 999:
 		# gonna need to add something to resee menu
 		#try:
 			print(intro)
+			import os
+			import glob
+			print('Below is a list of current decks, by deck name')
+			path = '/home/mike/Documents/coding_all/productivity_app/deck_folder'
+			path2 = '/home/mike/Documents/coding_all/productivity_app/deck_folder/*'
+			if os.listdir(path) == []:
+				print('There are no decks')
+			else:
+				for fname in glob.glob(path2):
+					print('deck name: ', fname[61:])
 			menu_input = int(input('please enter selection(999 to quit): '))
 			if menu_input == 1:
 				print('review cards')
@@ -267,27 +279,52 @@ make sure that the format is correct. There is a title labled as "title:" on the
 Each topic is labeled as "Topic:" and all the contentis formated as Q: "" and A: "". 
 If not sure please check the user guide for the proper outline/display""")
 	# for now, to enter new deck, use will type in full file location
-	try:
-		file_location = input('Please enter the file exactly: ')
-		print(file_location)
-		print(type(file_location))
-		# create deck from user input
-		deck_to_load = notes_to_dict_just_topics(file_location)
-		# get title of deck to use for storage and retrieval 
-		for k,v in deck_to_load.items():
-			title = string(k)
-		print(deck_to_load)
-		print(k)
-	except Exception as e:
-		print('That file was note found or did not work,', e)
+	#try:
+	file_location = input('Please enter the file exactly: ')
+	print(file_location)
+	print(type(file_location))
+	# create deck from user input
+	deck_to_load = notes_to_dict_just_topics(file_location)
+	# get title of deck to use for storage and retrieval 
+	for k,v in deck_to_load.items():
+		title = str(k)
+	print(deck_to_load)
+	print(k)
+	import glob
+	path2 = '/home/mike/Documents/coding_all/productivity_app/deck_folder/*'
+	exists = False
+	for fname in glob.glob(path2):
+		title_check = fname[61:]
+		if title_check == title:
+			exists = True
+	if exists == False:
+		write_dict_json_csv(deck_to_load, title)
+	else:
+		print('This deck already exists, would you like to overwrite')
+		save = input('Enter "yes" to overwrtie and anything else to not overwrite: ')
+		if save == 'yes':
+			write_dict_json_csv(deck_to_load, title)
+		else:
+			print('This deck was not saved')
+	#except Exception as e:
+	#	print('That file was note found or did not work,', e)
 
 
 user_menu()
 
+"""
+10.22.17
+looks like decks can now be uploaded or updated, get rid of update option 
+and just have an update or upload option
+print out list of decks is funky right now
+next is make part that cycles thru flash cards
+after that there needs smart learning around the cards, maybe wait till
+some exploration with kivy and see how unique user login works
 
 
 
 
+# /home/mike/Documents/credit/flashcard_test_multiple_topics_only.txt
 
 
 
