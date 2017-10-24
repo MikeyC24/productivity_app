@@ -196,8 +196,9 @@ def read_dict_back_from_json(file_name):
 	with open(file_name, 'r') as f:
 		data = f.read()
 		dict_back = json.loads(data)
-		print(dict_back)
-		print(type(dict_back))
+		#print(dict_back)
+		#print(type(dict_back))
+	return dict_back
 
 """
 # bocked off for now, this is geting all json stuff
@@ -234,14 +235,14 @@ then go into user options
 def user_menu():
 	intro = '''Welcome to the Flashcard center. Below will show all current
 flash card decks by title available. To use a current deck, enter 1. To add a 
-new flash card debt press 2. To update a current deck press 3. To turn a deck into
-an outline press 4. Enter 999 to quit.'''
+new flash card deck or update a falsh card deck press 2. To turn a deck into
+an outline press 3. Enter 999 to quit.'''
 	#path = '/home/mike/Documents/coding_all/productivity_app/*.csv'
 	#print(intro)
 	menu_input = 0
 	while menu_input != 999:
 		# gonna need to add something to resee menu
-		#try:
+		try:
 			print(intro)
 			import os
 			import glob
@@ -255,62 +256,108 @@ an outline press 4. Enter 999 to quit.'''
 					print('deck name: ', fname[61:])
 			menu_input = int(input('please enter selection(999 to quit): '))
 			if menu_input == 1:
-				print('review cards')
+				flash_card_study()
 			elif menu_input ==  2:
-				print('add new deck')
 				upload_new_deck()
 			elif menu_input == 3:
-				print('update deck')
-			elif menu_input == 4:
-				print('get outline')
+				print('this will create an outline, this feature is not done yet')
 			elif menu_input == 999:
 				pass
 			else:
 				print('That was not a recongized command')
-		#except Exception as e:
-		#	print('That command was not reconigzed, are you sure it was a number')
+		except Exception as e:
+			print('That command was not reconigzed, are you sure it was a number')
 	else:
 		print('goodbye')
 
 
 def upload_new_deck():
-	print(""" You have chosen to upload a new deck. Before doing so please
+	intro = """ You have chosen to upload a new deck. Before doing so please
 make sure that the format is correct. There is a title labled as "title:" on the top.
 Each topic is labeled as "Topic:" and all the contentis formated as Q: "" and A: "". 
-If not sure please check the user guide for the proper outline/display""")
+If not sure please check the user guide for the proper outline/display"""
+	print(intro)
 	# for now, to enter new deck, use will type in full file location
-	#try:
-	file_location = input('Please enter the file exactly: ')
-	print(file_location)
-	print(type(file_location))
-	# create deck from user input
-	deck_to_load = notes_to_dict_just_topics(file_location)
-	# get title of deck to use for storage and retrieval 
-	for k,v in deck_to_load.items():
-		title = str(k)
-	print(deck_to_load)
-	print(k)
-	import glob
-	path2 = '/home/mike/Documents/coding_all/productivity_app/deck_folder/*'
-	exists = False
-	for fname in glob.glob(path2):
-		title_check = fname[61:]
-		if title_check == title:
-			exists = True
-	if exists == False:
-		write_dict_json_csv(deck_to_load, title)
-	else:
-		print('This deck already exists, would you like to overwrite')
-		save = input('Enter "yes" to overwrtie and anything else to not overwrite: ')
-		if save == 'yes':
+	try:
+		file_location = input('Please enter the file exactly: ')
+		print(file_location)
+		print(type(file_location))
+		# create deck from user input
+		deck_to_load = notes_to_dict_just_topics(file_location)
+		# get title of deck to use for storage and retrieval 
+		for k,v in deck_to_load.items():
+			title = str(k)
+		print(deck_to_load)
+		print(k)
+		import glob
+		path2 = '/home/mike/Documents/coding_all/productivity_app/deck_folder/*'
+		exists = False
+		for fname in glob.glob(path2):
+			title_check = fname[61:]
+			if title_check == title:
+				exists = True
+		if exists == False:
 			write_dict_json_csv(deck_to_load, title)
 		else:
-			print('This deck was not saved')
-	#except Exception as e:
-	#	print('That file was note found or did not work,', e)
+			print('This deck already exists, would you like to overwrite')
+			save = input('Enter "yes" to overwrtie and anything else to not overwrite: ')
+			if save == 'yes':
+				write_dict_json_csv(deck_to_load, title)
+			else:
+				print('This deck was not saved')
+	except Exception as e:
+		print('That file was note found or did not work,', e)
 
+def flash_card_study():
+	intro = """You have chosen to study from your flash cards. Please 
+enter the title of the deck you want to see. To see title again enter "titles".
+Enter back to go back"""
+	choice = None
+	while choice != 'back':
+		print(intro)
+		choice = input('Please enter here: ')
+		if choice == 'titles':
+			import glob
+			path2 = '/home/mike/Documents/coding_all/productivity_app/deck_folder/*'
+			for fname in glob.glob(path2):
+				print('deck name: ', fname[61:])
+		else:
+			# pick csv file from title given in input
+			path_start = '/home/mike/Documents/coding_all/productivity_app/deck_folder/'
+			path_end ='.txt'
+			user_choice_path = path_start + choice
+			print('path for code', user_choice_path)
+			deck_dict = read_dict_back_from_json(user_choice_path)
+			print("""Below are the list of topics in this deck, would you
+like to study them or only certain ones? Please enter all or pick.""")
+			for k,v in deck_dict.items():
+				print(k)
+				print(v)
+			topic_choice = input('please enter here: ')
+			if topic_choice == 'all':
+				print('You will now study from all topics')
+			elif topic_choice == 'pick':
+				print('''please enter the topic you want to study, with a common
+after each one and no spaces after the common.''')
+			else:
+				print('One or more of those topics were not recongized, please try again')
 
+"""
+testing file save and retreival
+file_from_save_test = '/home/mike/Documents/coding_all/productivity_app/deck_folder/save_test'
+#title_dict = notes_to_dict_just_topics(test_multiple_topics_only)
+#write_dict_json_csv(title_dict, 'save_test')
+read_back_dict = read_dict_back_from_json(file_from_save_test)
+for k,v in read_back_dict.items():
+	print('1', k)
+	for kk, vv in v.items():
+		print('2', kk)
+		print('3', vv)
+"""
 user_menu()
+# for some reason a weird symbol is added during the save of a file, but only
+# when it is done during menu prompt, method on its own has no issue, 
+# also it is note a space/backslash issue
 
 """
 10.22.17
@@ -320,7 +367,7 @@ print out list of decks is funky right now
 next is make part that cycles thru flash cards
 after that there needs smart learning around the cards, maybe wait till
 some exploration with kivy and see how unique user login works
-
+"""
 
 
 
